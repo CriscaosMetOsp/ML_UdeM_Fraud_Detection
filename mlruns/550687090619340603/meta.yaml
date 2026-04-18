@@ -1,0 +1,8 @@
+artifact_location: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/550687090619340603
+creation_time: 1776475695430
+experiment_id: '550687090619340603'
+last_update_time: 1776475695430
+lifecycle_stage: active
+name: credit-fraud-detection-hpo-xgboost
+trace_location: null
+workspace: default

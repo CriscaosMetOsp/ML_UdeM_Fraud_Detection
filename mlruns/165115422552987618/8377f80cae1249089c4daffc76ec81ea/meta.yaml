@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/165115422552987618/8377f80cae1249089c4daffc76ec81ea/artifacts
+end_time: 1776475694907
+entry_point_name: ''
+experiment_id: '165115422552987618'
+lifecycle_stage: active
+run_id: 8377f80cae1249089c4daffc76ec81ea
+run_name: XGBoost_baseline
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776475694172
+status: 3
+tags: []
+user_id: c_cam

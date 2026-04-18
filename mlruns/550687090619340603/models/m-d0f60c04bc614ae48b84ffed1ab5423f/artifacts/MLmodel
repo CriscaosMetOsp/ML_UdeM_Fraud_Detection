@@ -1,0 +1,22 @@
+artifact_path: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/550687090619340603/models/m-d0f60c04bc614ae48b84ffed1ab5423f/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.13.5
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBClassifier
+    model_format: ubj
+    xgb_version: 3.2.0
+mlflow_version: 3.11.1
+model_id: m-d0f60c04bc614ae48b84ffed1ab5423f
+model_size_bytes: 1354807
+model_uuid: m-d0f60c04bc614ae48b84ffed1ab5423f
+prompts: null
+run_id: 43813c5b497d4e58bcd10ca276ce7fde
+utc_time_created: '2026-04-18 01:32:44.081558'

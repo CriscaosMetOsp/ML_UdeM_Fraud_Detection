@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    project: "fraud-detection-mlops"
+    env: "production"
+
+scrape_configs:
+
+  # Métricas del modelo (Prometheus client en FastAPI)
+  - job_name: "fraud_model"
+    static_configs:
+      - targets: ["fraud-api:8001"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Auto-monitoreo de Prometheus
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

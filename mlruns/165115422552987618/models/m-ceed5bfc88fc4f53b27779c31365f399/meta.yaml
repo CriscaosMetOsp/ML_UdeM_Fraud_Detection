@@ -1,0 +1,10 @@
+artifact_location: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/165115422552987618/models/m-ceed5bfc88fc4f53b27779c31365f399/artifacts
+creation_timestamp: 1776475577943
+experiment_id: '165115422552987618'
+last_updated_timestamp: 1776475578657
+model_id: m-ceed5bfc88fc4f53b27779c31365f399
+model_type: null
+name: model
+source_run_id: a221d91528d44a3a8ab0aa374637ec73
+status: 2
+status_message: null

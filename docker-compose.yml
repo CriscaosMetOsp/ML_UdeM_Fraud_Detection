@@ -1,0 +1,102 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stack de Monitoreo - Fraud Detection MLOps
+#
+# Servicios:
+#   prometheus  → Scrapea métricas del modelo (puerto 8001)
+#   grafana     → Dashboards visuales (puerto 3000)
+#   fraud-api   → FastAPI con endpoints de predicción (puerto 8000)
+#   mlflow      → Tracking UI (puerto 5000)
+#
+# Uso:
+#   docker compose up -d
+#   Grafana: http://localhost:3000  (admin / admin)
+#   Prometheus: http://localhost:9090
+#   API docs:   http://localhost:8000/docs
+#   MLflow UI:  http://localhost:5000
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── FastAPI + Prometheus exporter ─────────────────────────────────────────
+  fraud-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fraud-api
+    ports:
+      - "8000:8000"   # REST API
+      - "8001:8001"   # Prometheus metrics
+    volumes:
+      - ./models:/app/models:ro
+      - ./configs:/app/configs:ro
+      - ./monitoring_reports:/app/monitoring_reports
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ── Prometheus ─────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: fraud-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./src/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    depends_on:
+      - fraud-api
+    restart: unless-stopped
+
+  # ── Grafana ────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: fraud-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./src/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./src/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/fraud_model.json
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # ── MLflow Tracking Server ─────────────────────────────────────────────────
+  mlflow:
+    image: python:3.10-slim
+    container_name: fraud-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+      - ./models:/models
+    command: >
+      bash -c "pip install mlflow --quiet &&
+               mlflow server
+               --backend-store-uri /mlruns
+               --default-artifact-root /mlruns
+               --host 0.0.0.0
+               --port 5000"
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

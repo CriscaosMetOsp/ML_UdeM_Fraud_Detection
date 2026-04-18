@@ -1,0 +1,56 @@
+data:
+  raw_path: "data/raw/credit_card_frauds.csv"
+  processed_path: "data/processed/"
+  test_size: 0.2
+  random_state: 42
+
+features:
+  target: "is_fraud"
+  drop_cols:
+    - "trans_num"
+    - "trans_date_trans_time"
+    - "dob"
+    - "merchant"
+    - "city"
+    - "job"
+  categorical_cols:
+    - "category"
+    - "state"
+  numerical_cols:
+    - "amt"
+    - "lat"
+    - "long"
+    - "city_pop"
+    - "merch_lat"
+    - "merch_long"
+    - "hour"
+    - "day_of_week"
+    - "age"
+    - "distance_km"
+
+model:
+  random_forest:
+    n_estimators: 200
+    max_depth: 15
+    min_samples_split: 5
+    class_weight: "balanced"
+    random_state: 42
+    n_jobs: -1
+  xgboost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    scale_pos_weight: 190
+    random_state: 42
+    eval_metric: "aucpr"
+    use_label_encoder: false
+
+mlflow:
+  experiment_name: "credit-fraud-detection"
+  tracking_uri: "mlruns"
+  model_registry_name: "FraudDetectionModel"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  model_path: "models/best_model.pkl"

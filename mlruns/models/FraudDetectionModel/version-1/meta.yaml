@@ -1,0 +1,16 @@
+creation_timestamp: 1776475965297
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1776475965297
+model_id: m-d0f60c04bc614ae48b84ffed1ab5423f
+name: FraudDetectionModel
+run_id: 43813c5b497d4e58bcd10ca276ce7fde
+run_link: null
+source: models:/m-d0f60c04bc614ae48b84ffed1ab5423f
+status: READY
+status_message: null
+storage_location: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/550687090619340603/models/m-d0f60c04bc614ae48b84ffed1ab5423f/artifacts
+user_id: null
+version: 1
+workspace: default
