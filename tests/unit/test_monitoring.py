@@ -1,14 +1,13 @@
 """Unit tests para el módulo de monitoreo con Evidently + Prometheus."""
 
-import json
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from src.monitoring.evidently_monitor import (
     _extract_drift_metrics,
     _extract_classification_metrics,

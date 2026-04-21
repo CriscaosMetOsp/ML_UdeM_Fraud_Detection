@@ -6,8 +6,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from src.data.preprocessing import (
     _haversine,
     encode_categoricals,
