@@ -1,0 +1,8 @@
+artifact_location: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/165115422552987618
+creation_time: 1776475571149
+experiment_id: '165115422552987618'
+last_update_time: 1776475571149
+lifecycle_stage: active
+name: credit-fraud-detection
+trace_location: null
+workspace: default

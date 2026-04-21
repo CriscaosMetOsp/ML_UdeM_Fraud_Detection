@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/550687090619340603/ddc81ed0232f43e2872c4e30dbaf39ae/artifacts
+end_time: 1776475792218
+entry_point_name: ''
+experiment_id: '550687090619340603'
+lifecycle_stage: active
+run_id: ddc81ed0232f43e2872c4e30dbaf39ae
+run_name: '9'
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776475792117
+status: 3
+tags: []
+user_id: c_cam

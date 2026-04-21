@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/c_cam/OneDrive/Documents/ML_UdeM_Fraud_Detection/mlruns/165115422552987618/1b2abc144431468fa8338f508a0eda8f/artifacts
+end_time: 1776475692753
+entry_point_name: ''
+experiment_id: '165115422552987618'
+lifecycle_stage: active
+run_id: 1b2abc144431468fa8338f508a0eda8f
+run_name: RandomForest_baseline
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776475689198
+status: 3
+tags: []
+user_id: c_cam

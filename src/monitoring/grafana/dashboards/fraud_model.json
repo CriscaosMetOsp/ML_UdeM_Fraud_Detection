@@ -1,0 +1,381 @@
+{
+  "id": null,
+  "uid": "fraud-model-monitoring",
+  "title": "Fraud Detection Model - Monitoring",
+  "description": "Monitoreo en tiempo real del modelo de detección de fraude | MLOps - Universidad de Medellín",
+  "tags": ["mlops", "fraud", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Drift Share de Features",
+      "description": "Fracción de features con drift estadístico detectado por Evidently (KS test p<0.05)",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.2 },
+              { "color": "red", "value": 0.4 }
+            ]
+          },
+          "mappings": []
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_drift_share", "legendFormat": "Drift Share" }
+      ]
+    },
+
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Score Drift (p-value)",
+      "description": "P-value del KS test en la distribución de probabilidades del modelo. <0.05 indica drift",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "green", "value": 0.1 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_score_drift_pvalue", "legendFormat": "p-value" }
+      ]
+    },
+
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Recall",
+      "description": "Recall del modelo en la ventana de evaluación. Objetivo: >0.80",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.70 },
+              { "color": "green", "value": 0.80 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_recall", "legendFormat": "Recall" }
+      ]
+    },
+
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "PR-AUC",
+      "description": "Área bajo la curva Precision-Recall. Métrica principal por el desbalanceo severo",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.75 },
+              { "color": "green", "value": 0.85 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_pr_auc", "legendFormat": "PR-AUC" }
+      ]
+    },
+
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "F1 Score",
+      "description": "Media armónica de Precision y Recall",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.45 },
+              { "color": "green", "value": 0.55 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_f1", "legendFormat": "F1" }
+      ]
+    },
+
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Tasa de Fraude Actual",
+      "description": "Tasa de fraude observada en la ventana. Desviación >0.5% activa alerta",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.008 },
+              { "color": "red", "value": 0.015 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_current_fraud_rate", "legendFormat": "Fraud Rate" }
+      ]
+    },
+
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Evolución de Métricas de Rendimiento",
+      "description": "Recall, Precision y F1 a lo largo del tiempo",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0, "max": 1,
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "pointSize": 5 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Recall" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#73BF69" } }] },
+          { "matcher": { "id": "byName", "options": "Precision" },    "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#5794F2" } }] },
+          { "matcher": { "id": "byName", "options": "F1" },           "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF9830" } }] },
+          { "matcher": { "id": "byName", "options": "PR-AUC" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#F2495C" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_recall",    "legendFormat": "Recall" },
+        { "datasource": "Prometheus", "expr": "fraud_model_precision", "legendFormat": "Precision" },
+        { "datasource": "Prometheus", "expr": "fraud_model_f1",        "legendFormat": "F1" },
+        { "datasource": "Prometheus", "expr": "fraud_model_pr_auc",    "legendFormat": "PR-AUC" }
+      ]
+    },
+
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Drift de Features y Score",
+      "description": "Evolución del drift share y p-value del score. Drift share >0.4 o p-value <0.05 requieren acción",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Drift Share" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#F2495C" } },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Score p-value" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FADE2A" } },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_drift_share",         "legendFormat": "Drift Share" },
+        { "datasource": "Prometheus", "expr": "fraud_model_score_drift_pvalue",  "legendFormat": "Score p-value" }
+      ]
+    },
+
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Impacto de Negocio - USD en Fraude",
+      "description": "Dinero en fraude detectado vs. no detectado. Objetivo: minimizar USD missed",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": { "lineWidth": 2, "fillOpacity": 20 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "USD Detectado" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#73BF69" } }] },
+          { "matcher": { "id": "byName", "options": "USD Perdido" },   "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#F2495C" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_usd_detected", "legendFormat": "USD Detectado" },
+        { "datasource": "Prometheus", "expr": "fraud_model_usd_missed",   "legendFormat": "USD Perdido" }
+      ]
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Volumen de Predicciones y Falsos Positivos",
+      "description": "Predicciones totales, de alto riesgo y falsos positivos por ventana",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Predicciones" },    "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#5794F2" } }, { "id": "custom.axisPlacement", "value": "left" }] },
+          { "matcher": { "id": "byName", "options": "Alto Riesgo" },     "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF9830" } }, { "id": "custom.axisPlacement", "value": "left" }] },
+          { "matcher": { "id": "byName", "options": "Falsos Positivos" },"properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#F2495C" } }, { "id": "custom.axisPlacement", "value": "right" }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_prediction_count", "legendFormat": "Predicciones" },
+        { "datasource": "Prometheus", "expr": "fraud_model_high_risk_count",  "legendFormat": "Alto Riesgo" },
+        { "datasource": "Prometheus", "expr": "fraud_model_false_positives",  "legendFormat": "Falsos Positivos" }
+      ]
+    },
+
+    {
+      "id": 11,
+      "type": "gauge",
+      "title": "Tasa de Detección en USD",
+      "description": "Porcentaje del valor total del fraude que fue detectado. Objetivo: >95%",
+      "gridPos": { "x": 0, "y": 20, "w": 6, "h": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.85 },
+              { "color": "green", "value": 0.95 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "fraud_model_usd_detected / (fraud_model_usd_detected + fraud_model_usd_missed + 0.001)",
+          "legendFormat": "Detección USD"
+        }
+      ]
+    },
+
+    {
+      "id": 12,
+      "type": "gauge",
+      "title": "Recall del Modelo",
+      "description": "Porcentaje de fraudes detectados. Objetivo: >80%",
+      "gridPos": { "x": 6, "y": 20, "w": 6, "h": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.70 },
+              { "color": "green", "value": 0.80 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_recall", "legendFormat": "Recall" }
+      ]
+    },
+
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Resumen de Métricas Actuales",
+      "description": "Snapshot del último ciclo de monitoreo",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 6 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 4 },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "USD Detectado" }, "properties": [{ "id": "unit", "value": "currencyUSD" }] },
+          { "matcher": { "id": "byName", "options": "USD Perdido" },   "properties": [{ "id": "unit", "value": "currencyUSD" }] }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [] },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "fraud_model_recall",         "legendFormat": "Recall",         "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_precision",      "legendFormat": "Precision",      "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_f1",             "legendFormat": "F1",             "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_pr_auc",         "legendFormat": "PR-AUC",         "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_usd_detected",   "legendFormat": "USD Detectado",  "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_usd_missed",     "legendFormat": "USD Perdido",    "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_drift_share",    "legendFormat": "Drift Share",    "instant": true },
+        { "datasource": "Prometheus", "expr": "fraud_model_false_positives","legendFormat": "Falsos Positivos","instant": true }
+      ]
+    }
+
+  ],
+
+  "templating": { "list": [] },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

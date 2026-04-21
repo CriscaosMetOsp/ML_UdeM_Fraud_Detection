@@ -1,0 +1,22 @@
+{
+  "drift_share": 0.0,
+  "score_drift_pvalue": 1.0,
+  "drifted_features": [
+    "amt",
+    "lat",
+    "long",
+    "city_pop",
+    "merch_lat",
+    "merch_long",
+    "hour",
+    "day_of_week",
+    "age",
+    "distance_km",
+    "is_fraud"
+  ],
+  "precision": 0.0,
+  "recall": 0.0,
+  "f1": 0.0,
+  "pr_auc": 0.0,
+  "timestamp": "2026-04-18T01:49:58.819842"
+}
