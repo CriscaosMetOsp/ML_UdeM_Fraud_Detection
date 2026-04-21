@@ -3,8 +3,9 @@ Prefect pipeline completo: preprocesamiento → HPO con Optuna → evaluación �
 Run: python src/models/pipeline.py [--hpo] [--trials 30] [--model xgboost]
 Run: uv run src/models/pipeline.py [--hpo] [--trials 30] [--model xgboost]
 Levantar el servidor de observabilidad con prefect: uv run prefect server start
-Ver resultado en mlflow: uv run mlflow ui --port 5000 
+Ver resultado en mlflow: uv run mlflow ui --port 5000
 """
+
 import argparse
 import logging
 import os
@@ -37,6 +38,7 @@ def load_config(path="configs/config.yaml"):
 
 
 # ── Tasks ──────────────────────────────────────────────────────────────────────
+
 
 @task(name="load-data", retries=2, retry_delay_seconds=10)
 def task_load_data(cfg):
@@ -76,17 +78,29 @@ def task_baseline(X_train, y_train, X_test, y_test, cfg):
 
     rf = train_random_forest(X_train, y_train, cfg["model"]["random_forest"])
     rf_metrics, rf_run_id = run_experiment(
-        "RandomForest_baseline", rf, cfg["model"]["random_forest"],
-        X_test, y_test, cfg["mlflow"]["experiment_name"]
+        "RandomForest_baseline",
+        rf,
+        cfg["model"]["random_forest"],
+        X_test,
+        y_test,
+        cfg["mlflow"]["experiment_name"],
     )
-    logger.info(f"RF  | PR-AUC: {rf_metrics['pr_auc']:.4f} | Recall: {rf_metrics['recall']:.4f}")
+    logger.info(
+        f"RF  | PR-AUC: {rf_metrics['pr_auc']:.4f} | Recall: {rf_metrics['recall']:.4f}"
+    )
 
     xgb = train_xgboost(X_train, y_train, cfg["model"]["xgboost"])
     xgb_metrics, xgb_run_id = run_experiment(
-        "XGBoost_baseline", xgb, cfg["model"]["xgboost"],
-        X_test, y_test, cfg["mlflow"]["experiment_name"]
+        "XGBoost_baseline",
+        xgb,
+        cfg["model"]["xgboost"],
+        X_test,
+        y_test,
+        cfg["mlflow"]["experiment_name"],
     )
-    logger.info(f"XGB | PR-AUC: {xgb_metrics['pr_auc']:.4f} | Recall: {xgb_metrics['recall']:.4f}")
+    logger.info(
+        f"XGB | PR-AUC: {xgb_metrics['pr_auc']:.4f} | Recall: {xgb_metrics['recall']:.4f}"
+    )
 
     if rf_metrics["pr_auc"] >= xgb_metrics["pr_auc"]:
         return rf, rf_metrics, rf_run_id, "RandomForest"
@@ -100,11 +114,15 @@ def task_hpo(X_train, y_train, X_test, y_test, cfg, model_type: str, n_trials: i
     logger.info(f"Iniciando HPO: {model_type.upper()} | {n_trials} trials")
 
     from src.models.hpo import run_hpo
+
     best_model, best_params, best_metrics, best_run_id = run_hpo(
         model_type=model_type,
-        X_train=X_train, y_train=y_train,
-        X_test=X_test, y_test=y_test,
-        cfg=cfg, n_trials=n_trials,
+        X_train=X_train,
+        y_train=y_train,
+        X_test=X_test,
+        y_test=y_test,
+        cfg=cfg,
+        n_trials=n_trials,
     )
     logger.info(
         f"HPO listo | PR-AUC: {best_metrics['pr_auc']:.4f} "
@@ -120,32 +138,52 @@ def task_compare_register(baseline_result, hpo_result, cfg):
     baseline_model, baseline_metrics, baseline_run_id, baseline_name = baseline_result
     hpo_model, hpo_params, hpo_metrics, hpo_run_id = hpo_result
 
-    improvement = (hpo_metrics["pr_auc"] - baseline_metrics["pr_auc"]) / baseline_metrics["pr_auc"] * 100
+    improvement = (
+        (hpo_metrics["pr_auc"] - baseline_metrics["pr_auc"])
+        / baseline_metrics["pr_auc"]
+        * 100
+    )
     logger.info(f"Baseline PR-AUC : {baseline_metrics['pr_auc']:.4f}")
     logger.info(f"HPO      PR-AUC : {hpo_metrics['pr_auc']:.4f}  ({improvement:+.2f}%)")
 
     if hpo_metrics["pr_auc"] >= baseline_metrics["pr_auc"]:
-        winner_model, winner_run_id, winner_name = hpo_model, hpo_run_id, "HPO_optimizado"
+        winner_model, winner_run_id, winner_name = (
+            hpo_model,
+            hpo_run_id,
+            "HPO_optimizado",
+        )
         winner_metrics = hpo_metrics
     else:
-        winner_model, winner_run_id, winner_name = baseline_model, baseline_run_id, baseline_name
+        winner_model, winner_run_id, winner_name = (
+            baseline_model,
+            baseline_run_id,
+            baseline_name,
+        )
         winner_metrics = baseline_metrics
         logger.warning("Baseline supera al HPO — desplegando baseline")
 
     joblib.dump(winner_model, "models/best_model.pkl")
-    register_best_model(winner_run_id, cfg["mlflow"]["model_registry_name"], cfg["mlflow"]["tracking_uri"])
+    register_best_model(
+        winner_run_id,
+        cfg["mlflow"]["model_registry_name"],
+        cfg["mlflow"]["tracking_uri"],
+    )
     logger.info(f"✅ Registrado: {winner_name}")
     return winner_name, winner_metrics
 
 
 # ── Flow ───────────────────────────────────────────────────────────────────────
 
+
 @flow(name="fraud-detection-full-pipeline", log_prints=True)
-def full_pipeline(run_hpo: bool = True, hpo_model: str = "xgboost", hpo_trials: int = 30):
+def full_pipeline(
+    run_hpo: bool = True, hpo_model: str = "xgboost", hpo_trials: int = 30
+):
     os.chdir(Path(__file__).resolve().parents[2])
     cfg = load_config()
 
     import mlflow
+
     mlflow.set_tracking_uri(cfg["mlflow"]["tracking_uri"])
 
     df = task_load_data(cfg)
@@ -154,12 +192,22 @@ def full_pipeline(run_hpo: bool = True, hpo_model: str = "xgboost", hpo_trials: 
     baseline_result = task_baseline(X_train, y_train, X_test, y_test, cfg)
 
     if run_hpo:
-        hpo_result = task_hpo(X_train, y_train, X_test, y_test, cfg, hpo_model, hpo_trials)
-        winner_name, winner_metrics = task_compare_register(baseline_result, hpo_result, cfg)
+        hpo_result = task_hpo(
+            X_train, y_train, X_test, y_test, cfg, hpo_model, hpo_trials
+        )
+        winner_name, winner_metrics = task_compare_register(
+            baseline_result, hpo_result, cfg
+        )
     else:
-        baseline_model, baseline_metrics, baseline_run_id, baseline_name = baseline_result
+        baseline_model, baseline_metrics, baseline_run_id, baseline_name = (
+            baseline_result
+        )
         joblib.dump(baseline_model, "models/best_model.pkl")
-        register_best_model(baseline_run_id, cfg["mlflow"]["model_registry_name"], cfg["mlflow"]["tracking_uri"])
+        register_best_model(
+            baseline_run_id,
+            cfg["mlflow"]["model_registry_name"],
+            cfg["mlflow"]["tracking_uri"],
+        )
         winner_name, winner_metrics = baseline_name, baseline_metrics
 
     print(f"\n{'='*55}")
@@ -167,7 +215,9 @@ def full_pipeline(run_hpo: bool = True, hpo_model: str = "xgboost", hpo_trials: 
     print(f"   PR-AUC  : {winner_metrics['pr_auc']:.4f}")
     print(f"   Recall  : {winner_metrics['recall']:.4f}")
     print(f"   F1      : {winner_metrics['f1']:.4f}")
-    print(f"   Fraudes : {winner_metrics['fraud_detected']}/{winner_metrics['total_fraud']}")
+    print(
+        f"   Fraudes : {winner_metrics['fraud_detected']}/{winner_metrics['total_fraud']}"
+    )
     print(f"{'='*55}")
 
 
@@ -175,7 +225,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--hpo", action="store_true", default=True)
     parser.add_argument("--no-hpo", dest="hpo", action="store_false")
-    parser.add_argument("--model", default="xgboost", choices=["xgboost", "random_forest", "both"])
+    parser.add_argument(
+        "--model", default="xgboost", choices=["xgboost", "random_forest", "both"]
+    )
     parser.add_argument("--trials", type=int, default=30)
     args = parser.parse_args()
     full_pipeline(run_hpo=args.hpo, hpo_model=args.model, hpo_trials=args.trials)

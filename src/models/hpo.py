@@ -54,6 +54,7 @@ def load_config(path="configs/config.yaml") -> dict:
 
 # ── Search spaces ─────────────────────────────────────────────────────────────
 
+
 def _suggest_xgboost_params(trial: optuna.Trial) -> dict:
     return {
         "n_estimators": trial.suggest_int("n_estimators", 100, 600, step=50),
@@ -77,14 +78,19 @@ def _suggest_rf_params(trial: optuna.Trial) -> dict:
         "max_depth": trial.suggest_int("max_depth", 5, 30),
         "min_samples_split": trial.suggest_int("min_samples_split", 2, 20),
         "min_samples_leaf": trial.suggest_int("min_samples_leaf", 1, 10),
-        "max_features": trial.suggest_categorical("max_features", ["sqrt", "log2", 0.3, 0.5]),
-        "class_weight": trial.suggest_categorical("class_weight", ["balanced", "balanced_subsample"]),
+        "max_features": trial.suggest_categorical(
+            "max_features", ["sqrt", "log2", 0.3, 0.5]
+        ),
+        "class_weight": trial.suggest_categorical(
+            "class_weight", ["balanced", "balanced_subsample"]
+        ),
         "random_state": 42,
         "n_jobs": -1,
     }
 
 
 # ── Objective functions ───────────────────────────────────────────────────────
+
 
 def _make_objective(model_type: str, X_train, y_train):
     """
@@ -104,7 +110,9 @@ def _make_objective(model_type: str, X_train, y_train):
 
         # PR-AUC via cross_val_score (average_precision)
         scores = cross_val_score(
-            model, X_train, y_train,
+            model,
+            X_train,
+            y_train,
             cv=cv,
             scoring="average_precision",
             n_jobs=-1,
@@ -122,6 +130,7 @@ def _make_objective(model_type: str, X_train, y_train):
 
 
 # ── Study runner ──────────────────────────────────────────────────────────────
+
 
 def run_hpo(
     model_type: str,
@@ -150,9 +159,15 @@ def run_hpo(
         tracking_uri=cfg["mlflow"]["tracking_uri"],
         metric_name="pr_auc_cv",
         create_experiment=False,
-        mlflow_kwargs={"experiment_id": mlflow.get_experiment_by_name(experiment_name).experiment_id}
-        if mlflow.get_experiment_by_name(experiment_name)
-        else {},
+        mlflow_kwargs=(
+            {
+                "experiment_id": mlflow.get_experiment_by_name(
+                    experiment_name
+                ).experiment_id
+            }
+            if mlflow.get_experiment_by_name(experiment_name)
+            else {}
+        ),
     )
 
     study = optuna.create_study(
@@ -190,8 +205,10 @@ def run_hpo(
     # Registrar importancia de hiperparámetros
     try:
         importance = optuna.importance.get_param_importances(study)
-        logger.info(f"Importancia de hiperparámetros:\n" +
-                    "\n".join(f"  {k}: {v:.3f}" for k, v in importance.items()))
+        logger.info(
+            f"Importancia de hiperparámetros:\n"
+            + "\n".join(f"  {k}: {v:.3f}" for k, v in importance.items())
+        )
     except Exception:
         pass
 
@@ -228,6 +245,7 @@ def run_hpo(
 
 
 # ── CLI entry point ───────────────────────────────────────────────────────────
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -310,6 +328,7 @@ def main():
 
     # Registrar en MLflow Model Registry
     from src.models.train import register_best_model
+
     register_best_model(
         best_run_id,
         cfg["mlflow"]["model_registry_name"],

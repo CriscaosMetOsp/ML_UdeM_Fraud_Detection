@@ -2,6 +2,7 @@
 Model monitoring module.
 Detects data drift and performance degradation over time.
 """
+
 import json
 import logging
 from datetime import datetime
@@ -32,7 +33,9 @@ class FraudModelMonitor:
         self.alerts: list[dict] = []
         self.report: dict = {}
 
-    def check_score_drift(self, current_scores: np.ndarray, threshold: float = 0.05) -> dict:
+    def check_score_drift(
+        self, current_scores: np.ndarray, threshold: float = 0.05
+    ) -> dict:
         """KS test on predicted probability distributions."""
         stat, p_value = stats.ks_2samp(self.reference_scores, current_scores)
         drift_detected = p_value < threshold
@@ -49,12 +52,18 @@ class FraudModelMonitor:
         return result
 
     def check_feature_drift(
-        self, current_features: pd.DataFrame, numerical_cols: list, threshold: float = 0.05
+        self,
+        current_features: pd.DataFrame,
+        numerical_cols: list,
+        threshold: float = 0.05,
     ) -> list[dict]:
         """KS test per numerical feature."""
         results = []
         for col in numerical_cols:
-            if col not in self.reference_features.columns or col not in current_features.columns:
+            if (
+                col not in self.reference_features.columns
+                or col not in current_features.columns
+            ):
                 continue
             stat, p_value = stats.ks_2samp(
                 self.reference_features[col].dropna(),
@@ -70,11 +79,16 @@ class FraudModelMonitor:
             results.append(r)
             if drift:
                 self.alerts.append({"type": "FEATURE_DRIFT", **r})
-                logger.warning(f"⚠️ Feature drift on '{col}': KS={stat:.4f} p={p_value:.4f}")
+                logger.warning(
+                    f"⚠️ Feature drift on '{col}': KS={stat:.4f} p={p_value:.4f}"
+                )
         return results
 
     def check_fraud_rate(
-        self, current_fraud_rate: float, expected_rate: float = 0.0052, tolerance: float = 0.005
+        self,
+        current_fraud_rate: float,
+        expected_rate: float = 0.0052,
+        tolerance: float = 0.005,
     ) -> dict:
         """Flag if fraud rate deviates too much from training baseline."""
         deviation = abs(current_fraud_rate - expected_rate)
@@ -87,7 +101,9 @@ class FraudModelMonitor:
         }
         if alert:
             self.alerts.append({"type": "FRAUD_RATE_ANOMALY", **result})
-            logger.warning(f"⚠️ Unusual fraud rate: {current_fraud_rate:.4%} (expected ~{expected_rate:.4%})")
+            logger.warning(
+                f"⚠️ Unusual fraud rate: {current_fraud_rate:.4%} (expected ~{expected_rate:.4%})"
+            )
         return result
 
     def check_business_impact(
@@ -101,7 +117,9 @@ class FraudModelMonitor:
         result = {
             "fraud_usd_detected": round(float(detected), 2),
             "fraud_usd_missed": round(float(missed), 2),
-            "detection_rate_usd": round(float(detected / (detected + missed + 1e-9)), 4),
+            "detection_rate_usd": round(
+                float(detected / (detected + missed + 1e-9)), 4
+            ),
             "false_positives": false_positives,
         }
         logger.info(
@@ -109,7 +127,9 @@ class FraudModelMonitor:
         )
         return result
 
-    def generate_report(self, score_result, feature_results, fraud_rate_result, business_result) -> dict:
+    def generate_report(
+        self, score_result, feature_results, fraud_rate_result, business_result
+    ) -> dict:
         self.report = {
             "timestamp": datetime.utcnow().isoformat(),
             "score_drift": score_result,
@@ -124,6 +144,7 @@ class FraudModelMonitor:
 
     def save_report(self, path: str = "logs/monitoring_report.json"):
         Path(path).parent.mkdir(exist_ok=True)
+
         def _default(obj):
             if isinstance(obj, (bool, int, float, str)):
                 return obj
@@ -163,7 +184,9 @@ def run_monitoring_check(
         np.array(y_test), y_pred, np.array(amounts)
     )
 
-    report = monitor.generate_report(score_result, feature_results, fraud_rate_result, business_result)
+    report = monitor.generate_report(
+        score_result, feature_results, fraud_rate_result, business_result
+    )
     monitor.save_report()
 
     print(f"\n=== Monitoring Report ===")

@@ -2,6 +2,7 @@
 Model training with MLflow experiment tracking.
 Trains Random Forest and XGBoost, registers the best model.
 """
+
 import logging
 import os
 import sys
@@ -69,8 +70,9 @@ def train_xgboost(X_train, y_train, params: dict):
     return model
 
 
-def run_experiment(model_name: str, model, params: dict, X_test, y_test,
-                   experiment_name: str) -> tuple[dict, str]:
+def run_experiment(
+    model_name: str, model, params: dict, X_test, y_test, experiment_name: str
+) -> tuple[dict, str]:
     """Run one MLflow experiment run and return metrics + run_id."""
     mlflow.set_experiment(experiment_name)
 
@@ -82,9 +84,13 @@ def run_experiment(model_name: str, model, params: dict, X_test, y_test,
         metrics = compute_metrics(y_test, y_pred, y_prob)
 
         mlflow.log_metrics(metrics)
-        logger.info(f"{model_name} | PR-AUC: {metrics['pr_auc']:.4f} | "
-                    f"Recall: {metrics['recall']:.4f} | F1: {metrics['f1']:.4f}")
-        logger.info(f"Fraud detected: {metrics['fraud_detected']}/{metrics['total_fraud']}")
+        logger.info(
+            f"{model_name} | PR-AUC: {metrics['pr_auc']:.4f} | "
+            f"Recall: {metrics['recall']:.4f} | F1: {metrics['f1']:.4f}"
+        )
+        logger.info(
+            f"Fraud detected: {metrics['fraud_detected']}/{metrics['total_fraud']}"
+        )
 
         # Log model artifact
         if "XGB" in model_name or "xgb" in model_name.lower():
@@ -130,8 +136,12 @@ def main():
     rf_params = cfg["model"]["random_forest"]
     rf = train_random_forest(X_train_sc, y_train, rf_params)
     rf_metrics, rf_run_id = run_experiment(
-        "RandomForest", rf, rf_params, X_test_sc, y_test,
-        cfg["mlflow"]["experiment_name"]
+        "RandomForest",
+        rf,
+        rf_params,
+        X_test_sc,
+        y_test,
+        cfg["mlflow"]["experiment_name"],
     )
     results["RandomForest"] = {"metrics": rf_metrics, "run_id": rf_run_id, "model": rf}
 
@@ -139,8 +149,7 @@ def main():
     xgb_params = cfg["model"]["xgboost"]
     xgb = train_xgboost(X_train_sc, y_train, xgb_params)
     xgb_metrics, xgb_run_id = run_experiment(
-        "XGBoost", xgb, xgb_params, X_test_sc, y_test,
-        cfg["mlflow"]["experiment_name"]
+        "XGBoost", xgb, xgb_params, X_test_sc, y_test, cfg["mlflow"]["experiment_name"]
     )
     results["XGBoost"] = {"metrics": xgb_metrics, "run_id": xgb_run_id, "model": xgb}
 
@@ -157,7 +166,7 @@ def main():
     register_best_model(
         best["run_id"],
         cfg["mlflow"]["model_registry_name"],
-        cfg["mlflow"]["tracking_uri"]
+        cfg["mlflow"]["tracking_uri"],
     )
 
     # Print final report

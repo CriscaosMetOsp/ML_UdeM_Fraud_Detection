@@ -1,4 +1,5 @@
 """Unit tests for preprocessing module."""
+
 import sys
 from pathlib import Path
 
@@ -66,8 +67,10 @@ def test_distance_non_negative(sample_df):
 
 def test_haversine_same_point():
     dist = _haversine(
-        pd.Series([6.2442]), pd.Series([-75.5812]),
-        pd.Series([6.2442]), pd.Series([-75.5812])
+        pd.Series([6.2442]),
+        pd.Series([-75.5812]),
+        pd.Series([6.2442]),
+        pd.Series([-75.5812]),
     )
     assert float(dist.iloc[0]) == pytest.approx(0.0, abs=1e-6)
 
@@ -75,8 +78,10 @@ def test_haversine_same_point():
 def test_haversine_known_distance():
     # Medellín to Bogotá ≈ 240 km
     dist = _haversine(
-        pd.Series([6.2442]), pd.Series([-75.5812]),
-        pd.Series([4.7110]), pd.Series([-74.0721])
+        pd.Series([6.2442]),
+        pd.Series([-75.5812]),
+        pd.Series([4.7110]),
+        pd.Series([-74.0721]),
     )
     assert 220 < float(dist.iloc[0]) < 260
 

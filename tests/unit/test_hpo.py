@@ -1,4 +1,5 @@
 """Unit tests para el módulo de HPO con Optuna."""
+
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -17,8 +18,11 @@ from src.models.hpo import _suggest_rf_params, _suggest_xgboost_params, _make_ob
 def imbalanced_data():
     """Dataset binario desbalanceado similar al problema real."""
     X, y = make_classification(
-        n_samples=800, n_features=12, n_informative=8,
-        weights=[0.98, 0.02], random_state=42
+        n_samples=800,
+        n_features=12,
+        n_informative=8,
+        weights=[0.98, 0.02],
+        random_state=42,
     )
     return pd.DataFrame(X, columns=[f"f{i}" for i in range(12)]), pd.Series(y)
 
@@ -40,13 +44,23 @@ def _make_trial(params: dict):
 
 # ── Suggest param tests ───────────────────────────────────────────────────────
 
+
 def test_suggest_xgboost_returns_required_keys():
     study = optuna.create_study(direction="maximize")
     trial = study.ask()
     params = _suggest_xgboost_params(trial)
-    required = {"n_estimators", "max_depth", "learning_rate", "subsample",
-                "colsample_bytree", "min_child_weight", "gamma",
-                "reg_alpha", "reg_lambda", "scale_pos_weight"}
+    required = {
+        "n_estimators",
+        "max_depth",
+        "learning_rate",
+        "subsample",
+        "colsample_bytree",
+        "min_child_weight",
+        "gamma",
+        "reg_alpha",
+        "reg_lambda",
+        "scale_pos_weight",
+    }
     assert required.issubset(params.keys())
 
 
@@ -54,8 +68,14 @@ def test_suggest_rf_returns_required_keys():
     study = optuna.create_study(direction="maximize")
     trial = study.ask()
     params = _suggest_rf_params(trial)
-    required = {"n_estimators", "max_depth", "min_samples_split",
-                "min_samples_leaf", "max_features", "class_weight"}
+    required = {
+        "n_estimators",
+        "max_depth",
+        "min_samples_split",
+        "min_samples_leaf",
+        "max_features",
+        "class_weight",
+    }
     assert required.issubset(params.keys())
 
 
@@ -83,6 +103,7 @@ def test_rf_param_ranges():
 
 # ── Objective function tests ──────────────────────────────────────────────────
 
+
 def test_objective_xgboost_returns_float(imbalanced_data):
     X, y = imbalanced_data
     objective = _make_objective("xgboost", X, y)
@@ -106,7 +127,9 @@ def test_objective_rf_returns_float(imbalanced_data):
 def test_optuna_study_improves_over_trials(imbalanced_data):
     """Verifica que Optuna completa múltiples trials sin errores."""
     X, y = imbalanced_data
-    study = optuna.create_study(direction="maximize", sampler=optuna.samplers.RandomSampler(seed=42))
+    study = optuna.create_study(
+        direction="maximize", sampler=optuna.samplers.RandomSampler(seed=42)
+    )
     objective = _make_objective("xgboost", X, y)
     study.optimize(objective, n_trials=3, catch=(Exception,))
     assert len(study.trials) >= 1
@@ -116,7 +139,9 @@ def test_optuna_study_improves_over_trials(imbalanced_data):
 def test_study_best_params_are_valid(imbalanced_data):
     """El mejor trial debe tener parámetros dentro de los rangos definidos."""
     X, y = imbalanced_data
-    study = optuna.create_study(direction="maximize", sampler=optuna.samplers.RandomSampler(seed=0))
+    study = optuna.create_study(
+        direction="maximize", sampler=optuna.samplers.RandomSampler(seed=0)
+    )
     study.optimize(_make_objective("xgboost", X, y), n_trials=2, catch=(Exception,))
     best = study.best_params
     assert "n_estimators" in best

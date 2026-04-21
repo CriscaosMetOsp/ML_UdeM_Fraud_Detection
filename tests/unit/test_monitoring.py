@@ -1,4 +1,5 @@
 """Unit tests para el módulo de monitoreo con Evidently + Prometheus."""
+
 import json
 import sys
 from pathlib import Path
@@ -17,8 +18,8 @@ from src.monitoring.evidently_monitor import (
     build_current_dataframe,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def sample_predictions():
@@ -26,7 +27,7 @@ def sample_predictions():
     n = 500
     y_true = np.array([0] * 475 + [1] * 25)
     y_pred = y_true.copy()
-    y_pred[:10] = 1 - y_pred[:10]   # introduce some errors
+    y_pred[:10] = 1 - y_pred[:10]  # introduce some errors
     amounts = rng.exponential(70, n)
     return y_true, y_pred, amounts
 
@@ -34,9 +35,18 @@ def sample_predictions():
 @pytest.fixture
 def mock_drift_metrics():
     return [
-        {"metric_name": "DriftedColumnsCount(drift_share=0.5)", "value": {"count": 2.0, "share": 0.25}},
-        {"metric_name": "ValueDrift(column=fraud_proba,method=K-S p_value,threshold=0.05)", "value": 0.03},
-        {"metric_name": "ValueDrift(column=amt,method=K-S p_value,threshold=0.05)", "value": 0.02},
+        {
+            "metric_name": "DriftedColumnsCount(drift_share=0.5)",
+            "value": {"count": 2.0, "share": 0.25},
+        },
+        {
+            "metric_name": "ValueDrift(column=fraud_proba,method=K-S p_value,threshold=0.05)",
+            "value": 0.03,
+        },
+        {
+            "metric_name": "ValueDrift(column=amt,method=K-S p_value,threshold=0.05)",
+            "value": 0.02,
+        },
     ]
 
 
@@ -51,11 +61,19 @@ def mock_clf_metrics():
 
 # ── Business metrics ──────────────────────────────────────────────────────────
 
+
 def test_compute_business_metrics_shapes(sample_predictions):
     y_true, y_pred, amounts = sample_predictions
     result = compute_business_metrics(y_true, y_pred, amounts)
-    for key in ["fraud_usd_detected", "fraud_usd_missed", "false_positives",
-                "detection_rate_usd", "current_fraud_rate", "prediction_count", "high_risk_count"]:
+    for key in [
+        "fraud_usd_detected",
+        "fraud_usd_missed",
+        "false_positives",
+        "detection_rate_usd",
+        "current_fraud_rate",
+        "prediction_count",
+        "high_risk_count",
+    ]:
         assert key in result, f"Missing key: {key}"
 
 
@@ -90,6 +108,7 @@ def test_fraud_rate_correct(sample_predictions):
 
 # ── Drift metric extraction ───────────────────────────────────────────────────
 
+
 def test_extract_drift_metrics_share(mock_drift_metrics):
     result = _extract_drift_metrics(mock_drift_metrics)
     assert result["drift_share"] == pytest.approx(0.25)
@@ -116,6 +135,7 @@ def test_extract_drift_empty_input():
 
 # ── Classification metric extraction ─────────────────────────────────────────
 
+
 def test_extract_classification_metrics(mock_clf_metrics):
     result = _extract_classification_metrics(mock_clf_metrics)
     assert result["precision"] == pytest.approx(0.72)
@@ -130,17 +150,25 @@ def test_extract_classification_empty():
 
 # ── Prometheus gauges ─────────────────────────────────────────────────────────
 
+
 def test_update_prometheus_gauges_no_exception(sample_predictions):
     """Verificar que actualizar los gauges no lanza excepciones."""
     y_true, y_pred, amounts = sample_predictions
     business = compute_business_metrics(y_true, y_pred, amounts)
-    drift = {"drift_share": 0.1, "score_drift_pvalue": 0.3, "precision": 0.7,
-             "recall": 0.85, "f1": 0.77, "pr_auc": 0.88}
+    drift = {
+        "drift_share": 0.1,
+        "score_drift_pvalue": 0.3,
+        "precision": 0.7,
+        "recall": 0.85,
+        "f1": 0.77,
+        "pr_auc": 0.88,
+    }
     # No debe lanzar excepción
     update_prometheus_gauges(drift, business)
 
 
 # ── DataFrame builders ────────────────────────────────────────────────────────
+
 
 def test_build_reference_dataframe_columns():
     """El DataFrame de referencia debe incluir is_fraud y fraud_proba."""

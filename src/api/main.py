@@ -2,6 +2,7 @@
 FastAPI REST API for fraud detection predictions.
 Run: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
 """
+
 import logging
 from pathlib import Path
 
@@ -47,8 +48,10 @@ def load_artifacts():
 
 # ── Input schema ──────────────────────────────────────────────────────────────
 
+
 class TransactionInput(BaseModel):
     """Single transaction to score."""
+
     amt: float = Field(..., gt=0, description="Transaction amount in USD")
     lat: float = Field(..., description="Customer latitude")
     long: float = Field(..., description="Customer longitude")
@@ -98,13 +101,18 @@ class BatchResponse(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _haversine(lat1, lon1, lat2, lon2) -> float:
     import math
+
     R = 6371.0
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    )
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
@@ -136,11 +144,16 @@ def _predict_one(tx: TransactionInput) -> PredictionResponse:
         is_fraud=is_fraud,
         fraud_probability=round(prob, 4),
         risk_level=risk,
-        message="⚠️ Suspicious transaction" if is_fraud else "✅ Transaction appears legitimate",
+        message=(
+            "⚠️ Suspicious transaction"
+            if is_fraud
+            else "✅ Transaction appears legitimate"
+        ),
     )
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
+
 
 @app.get("/", tags=["Health"])
 def root():
@@ -195,6 +208,7 @@ def model_info():
         raise HTTPException(status_code=503, detail="Model not loaded")
     return {
         "model_type": type(MODEL).__name__,
-        "features": CONFIG["features"]["numerical_cols"] + CONFIG["features"]["categorical_cols"],
+        "features": CONFIG["features"]["numerical_cols"]
+        + CONFIG["features"]["categorical_cols"],
         "target": CONFIG["features"]["target"],
     }

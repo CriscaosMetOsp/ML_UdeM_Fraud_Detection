@@ -1,4 +1,5 @@
 """Unit tests for API input validation."""
+
 import sys
 from pathlib import Path
 
@@ -11,9 +12,17 @@ from src.api.main import TransactionInput
 
 def valid_payload():
     return dict(
-        amt=107.23, lat=48.8878, long=-118.2105,
-        city_pop=149, merch_lat=49.159, merch_long=-118.186,
-        hour=0, day_of_week=1, age=45, category=3, state=7
+        amt=107.23,
+        lat=48.8878,
+        long=-118.2105,
+        city_pop=149,
+        merch_lat=49.159,
+        merch_long=-118.186,
+        hour=0,
+        day_of_week=1,
+        age=45,
+        category=3,
+        state=7,
     )
 
 

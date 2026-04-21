@@ -1,6 +1,7 @@
 """
 Data loading and preprocessing module.
 """
+
 import logging
 from pathlib import Path
 
@@ -70,7 +71,9 @@ def encode_categoricals(df: pd.DataFrame, categorical_cols: list) -> pd.DataFram
     return df
 
 
-def build_feature_matrix(df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, pd.Series]:
+def build_feature_matrix(
+    df: pd.DataFrame, config: dict
+) -> tuple[pd.DataFrame, pd.Series]:
     """
     Apply feature engineering and return X, y ready for modelling.
 

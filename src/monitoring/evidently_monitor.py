@@ -59,9 +59,7 @@ FRAUD_USD_DETECTED = Gauge(
 FRAUD_USD_MISSED = Gauge(
     "fraud_model_usd_missed", "USD en fraude no detectado en la ventana"
 )
-FALSE_POSITIVES = Gauge(
-    "fraud_model_false_positives", "Falsos positivos en la ventana"
-)
+FALSE_POSITIVES = Gauge("fraud_model_false_positives", "Falsos positivos en la ventana")
 FRAUD_RATE_CURRENT = Gauge(
     "fraud_model_current_fraud_rate", "Tasa de fraude actual en la ventana"
 )
@@ -76,6 +74,7 @@ HIGH_RISK_COUNT = Gauge(
 
 
 # ── Evidently report builder ───────────────────────────────────────────────
+
 
 def _build_data_definition(feature_cols: list[str]) -> DataDefinition:
     """Construye el DataDefinition de Evidently para clasificación binaria."""
@@ -136,7 +135,11 @@ def run_evidently_drift_report(
     # Extraer métricas de clasificación
     clf_metrics = _extract_classification_metrics(clf_snap.dict()["metrics"])
 
-    result = {**drift_metrics, **clf_metrics, "timestamp": datetime.utcnow().isoformat()}
+    result = {
+        **drift_metrics,
+        **clf_metrics,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
     _save_metrics_json(result, output_dir, ts)
     return result
 
@@ -160,7 +163,9 @@ def _extract_drift_metrics(metrics: list) -> dict:
         # Features con drift
         if "ValueDrift" in name and isinstance(val, (int, float)):
             if float(val) < 0.05:
-                col = name.split("column=")[1].split(",")[0] if "column=" in name else ""
+                col = (
+                    name.split("column=")[1].split(",")[0] if "column=" in name else ""
+                )
                 if col:
                     result["drifted_features"].append(col)
 
@@ -180,13 +185,21 @@ def _extract_classification_metrics(metrics: list) -> dict:
             # Algunos presets anidan las métricas por clase
             val_current = val.get("current", val)
             if "Precision" in name:
-                result["precision"] = float(val_current) if not isinstance(val_current, dict) else 0.0
+                result["precision"] = (
+                    float(val_current) if not isinstance(val_current, dict) else 0.0
+                )
             elif "Recall" in name:
-                result["recall"] = float(val_current) if not isinstance(val_current, dict) else 0.0
+                result["recall"] = (
+                    float(val_current) if not isinstance(val_current, dict) else 0.0
+                )
             elif "F1" in name:
-                result["f1"] = float(val_current) if not isinstance(val_current, dict) else 0.0
+                result["f1"] = (
+                    float(val_current) if not isinstance(val_current, dict) else 0.0
+                )
             elif "PRAuc" in name or "PR AUC" in name or "AveragePrecision" in name:
-                result["pr_auc"] = float(val_current) if not isinstance(val_current, dict) else 0.0
+                result["pr_auc"] = (
+                    float(val_current) if not isinstance(val_current, dict) else 0.0
+                )
         elif isinstance(val, (int, float)):
             if "Precision" in name:
                 result["precision"] = float(val)
@@ -200,6 +213,7 @@ def _extract_classification_metrics(metrics: list) -> dict:
 
 def _save_metrics_json(metrics: dict, output_dir: str, ts: str):
     """Serializa métricas a JSON ignorando tipos numpy."""
+
     def _default(o):
         if hasattr(o, "item"):
             return o.item()
@@ -218,6 +232,7 @@ def _save_metrics_json(metrics: dict, output_dir: str, ts: str):
 
 
 # ── Business impact ─────────────────────────────────────────────────────────
+
 
 def compute_business_metrics(
     y_true: np.ndarray, y_pred: np.ndarray, amounts: np.ndarray
@@ -240,6 +255,7 @@ def compute_business_metrics(
 
 
 # ── Prometheus exporter ──────────────────────────────────────────────────────
+
 
 def update_prometheus_gauges(drift_metrics: dict, business_metrics: dict):
     """Actualiza todos los Prometheus Gauges con las métricas calculadas."""
@@ -265,6 +281,7 @@ def update_prometheus_gauges(drift_metrics: dict, business_metrics: dict):
 
 
 # ── Main monitoring loop ─────────────────────────────────────────────────────
+
 
 def build_reference_dataframe(
     model, X_train: pd.DataFrame, y_train: pd.Series, feature_cols: list[str]
@@ -351,6 +368,7 @@ def run_monitoring_loop(
 
 if __name__ == "__main__":
     import sys
+
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
     from src.data.preprocessing import (
