@@ -264,6 +264,7 @@ Modelo → prometheus_client (puerto 8001)
 - **ClassificationPreset:** precision, recall, F1, PR-AUC en ventana de producción
 - Reportes HTML guardados en `monitoring_reports/` con timestamp
 
+
 ### Métricas en Grafana
 
 | Gauge Prometheus | Descripción |
@@ -275,8 +276,8 @@ Modelo → prometheus_client (puerto 8001)
 | `fraud_model_usd_detected` | USD en fraude detectado |
 | `fraud_model_usd_missed` | USD en fraude no detectado |
 | `fraud_model_false_positives` | Falsos positivos en ventana |
-
 ---
+> Nota: La carpeta `monitoring_reports/` contiene reportes pre-generados de ejecuciones anteriores como evidencia de funcionamiento. Al correr `evidently_monitor.py` se generarán nuevos reportes con timestamp.
 
 ## 📈 Resultados
 
