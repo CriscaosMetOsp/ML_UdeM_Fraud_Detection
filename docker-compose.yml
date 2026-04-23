@@ -10,7 +10,21 @@ version: "3.8"
 #   mlflow      → Tracking UI (puerto 5000)
 #
 # Uso:
+#   docker compose build fraud-streamlit --no-cache
 #   docker compose up -d
+#   # Reconstruir la imagen con los cambios
+#   docker compose build fraud-streamlit --no-cache
+
+#   # Reiniciar el contenedor
+#   docker compose up -d fraud-streamlit
+
+#   # Ver que esté corriendo
+#   docker compose ps
+#   # Detener el contenedor
+#   docker compose down # Detiene y elimina los contenedores, redes y volúmenes asociados
+#   # Ejecutar Streamlit localmente (con hot-reload automático)
+#   streamlit run app.py
+#   Streamlit UI:  http://localhost:8501
 #   Grafana: http://localhost:3000  (admin / admin)
 #   Prometheus: http://localhost:9090
 #   API docs:   http://localhost:8000/docs
@@ -24,12 +38,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - SERVICE=api
     container_name: fraud-api
     ports:
       - "8000:8000"   # REST API
       - "8001:8001"   # Prometheus metrics
     volumes:
-      - ./models:/app/models:ro
+      - ./models:/app/models
       - ./configs:/app/configs:ro
       - ./monitoring_reports:/app/monitoring_reports
       - ./logs:/app/logs
@@ -95,6 +111,32 @@ services:
                --default-artifact-root /mlruns
                --host 0.0.0.0
                --port 5000"
+    restart: unless-stopped
+
+  # ── Streamlit Frontend ─────────────────────────────────────────────────────
+  fraud-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - SERVICE=streamlit
+    container_name: fraud-streamlit
+    ports:
+      - "8501:8501"   # Streamlit UI
+    volumes:
+      - ./models:/app/models
+      - ./configs:/app/configs:ro
+      - ./src:/app/src:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
 volumes:

@@ -3,6 +3,6 @@ creation_timestamp: 1776475965263
 deployment_job_id: null
 deployment_job_state: null
 description: null
-last_updated_timestamp: 1776475965297
+last_updated_timestamp: 1776820526526
 name: FraudDetectionModel
 workspace: default
