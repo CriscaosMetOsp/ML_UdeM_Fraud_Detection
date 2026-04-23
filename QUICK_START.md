@@ -6,10 +6,10 @@
 
 ```bash
 # 1. Instalar dependencias
-pip install streamlit pyyaml
+uv sync
 
 # 2. Ejecutar la aplicación
-streamlit run app.py
+uv run streamlit run app.py
 
 # 3. Abrir en navegador
 # http://localhost:8501
@@ -105,8 +105,7 @@ models/
 
 ### "ModuleNotFoundError"
 ```bash
-# Reinstalar dependencias
-pip install -e .
+uv sync
 ```
 
 ### "FileNotFoundError: models/best_model.pkl"
