@@ -4,6 +4,7 @@ Run: python src/models/pipeline.py [--hpo] [--trials 30] [--model xgboost]
 Run: uv run src/models/pipeline.py [--hpo] [--trials 30] [--model xgboost]
 Levantar el servidor de observabilidad con prefect: uv run prefect server start
 Ver resultado en mlflow: uv run mlflow ui --port 5000
+# https://www.kaggle.com/datasets/dhruvb2028/credit-card-fraud-dataset
 """
 
 import argparse

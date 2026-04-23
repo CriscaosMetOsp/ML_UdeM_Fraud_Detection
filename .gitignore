@@ -36,6 +36,9 @@ monitoring_reports/
 logs/
 *.log
 
+# mlruns/
+mlruns/
+
 # Datos crudos (pesados)
 # Comenta si decides incluir el dataset en el repo
 # data/raw/

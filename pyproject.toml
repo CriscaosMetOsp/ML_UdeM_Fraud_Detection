@@ -24,6 +24,8 @@ dependencies = [
     "evidently>=0.7",
     "prometheus-client>=0.19",
     "optuna-integration[mlflow]>=4.8.0",
+    "streamlit>=1.28",
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
