@@ -1,342 +1,323 @@
-# 🔐 Credit Card Fraud Detection - MLOps End-to-End
+﻿# Fraud Detection MLOps
 
-**Universidad de Medellín | Specialización en Data Science e IA**
-**Proyecto Final - MLOps**
+## Introducción
 
----
+Este proyecto implementa una solución completa de detección de fraude en transacciones con tarjeta de crédito. Combina el entrenamiento de modelos, la optimización de hiperparámetros, la API de predicción y un frontend en Streamlit, con monitoreo en Prometheus, Grafana y MLflow.
 
-## 📋 Problema de Negocio
+El objetivo es desplegar una aplicación confiable que permita evaluar transacciones y detectar comportamientos sospechosos, cuidando la trazabilidad de los experimentos y la calidad del modelo.
 
-Las entidades financieras pierden miles de millones de dólares anuales por fraude en tarjetas de crédito. El reto es detectar transacciones fraudulentas en tiempo real con alta sensibilidad (*recall*), minimizando el impacto al cliente legítimo y el costo operativo de falsos positivos.
+## Dataset
 
-**Dataset:** 339,607 transacciones (2019–2020) con 0.52% de fraude.
+### Fuente
+El dataset proviene de Kaggle: **[Credit Card Fraud Dataset](https://www.kaggle.com/datasets/dhruvb2028/credit-card-fraud-dataset)**
 
-**Métricas de éxito:**
-| Métrica | Objetivo | Obtenido |
-|---|---|---|
-| PR-AUC | > 0.85 | **0.9087** ✅ |
-| Recall | > 0.80 | **0.8483** ✅ |
-| F1 | > 0.50 | **0.8543** ✅ |
+Contiene 339,607 transacciones de tarjeta de crédito con 0.52% de casos de fraude (1,754 transacciones fraudulentas).
 
----
+### Estructura del Dataset
 
-## 🏗️ Arquitectura
+| Variable | Tipo | Descripción | Rango/Ejemplo |
+|----------|------|-------------|---------------|
+| `trans_date_trans_time` | datetime | Fecha y hora de la transacción | 2019-2020 |
+| `cc_num` | int | Número de tarjeta de crédito (enmascarado) | Identificador único |
+| `merchant` | str | Nombre del comerciante | Texto variable |
+| `category` | str | Categoría de compra | shopping_net, shopping_pos, gas_transport, etc. |
+| `amt` | float | Monto de la transacción en USD | 0.01 - 28,948.62 |
+| `first` | str | Nombre del titular | Texto variable |
+| `last` | str | Apellido del titular | Texto variable |
+| `street` | str | Dirección del cliente | Texto variable |
+| `city` | str | Ciudad del cliente | Texto variable |
+| `state` | str | Estado del cliente | Códigos de estado (AL, NY, CA, etc.) |
+| `zip` | str | Código postal | Numérico |
+| `lat` | float | Latitud del cliente | -90 a 90 |
+| `long` | float | Longitud del cliente | -180 a 180 |
+| `city_pop` | int | Población de la ciudad del cliente | 0 - 13,200,000 |
+| `job` | str | Ocupación del cliente | Texto variable |
+| `dob` | datetime | Fecha de nacimiento del cliente | Año de nacimiento |
+| `merch_lat` | float | Latitud del comerciante | -90 a 90 |
+| `merch_long` | float | Longitud del comerciante | -180 a 180 |
+| `is_fraud` | int | Indicador de fraude (objetivo) | 0 (legítimo) o 1 (fraude) |
 
-```
-fraud-mlops/
-├── src/
-│   ├── data/           # Carga + feature engineering
-│   ├── models/
-│   │   ├── train.py    # Entrenamiento baseline + MLflow
-│   │   ├── hpo.py      # Optimización con Optuna
-│   │   └── pipeline.py # Orquestación con Prefect
-│   ├── api/            # FastAPI REST service
-│   └── monitoring/
-│       ├── evidently_monitor.py  # Drift con Evidently AI
-│       ├── prometheus.yml        # Config scraping
-│       └── grafana/              # Dashboard JSON + provisioning
-├── tests/unit/         # pytest — 38 tests
-├── configs/config.yaml
-├── docker-compose.yml  # Prometheus + Grafana + MLflow + API
-├── Dockerfile
-└── .github/workflows/ci.yml
-```
+## Requisitos
 
----
+- Python 3.10 o superior
+- Docker
+- Docker Compose
+- `data/raw/credit_card_frauds.csv`
+- Archivos de modelo:
+  - `models/best_model.pkl`
+  - `models/scaler.pkl`
 
-## ⚡ Quickstart
+## Instalación
 
-### 1. Instalar dependencias
+### 0. Clonar el repositorio
 
-**Con uv (recomendado — usa el lockfile incluido):**
+Abre una terminal y clona el proyecto:
+
 ```bash
-pip install uv
+git clone https://github.com/usuario/ML_UdeM_Fraud_Detection.git
+cd ML_UdeM_Fraud_Detection
+```
+
+### 1. Preparar el entorno local
+
+1. Instala las dependencias principales:
+
+```bash
 uv sync
 ```
 
-**Con pip (alternativa):**
-pip install pandas numpy scikit-learn xgboost mlflow prefect fastapi uvicorn \
-            pydantic imbalanced-learn joblib pyyaml scipy \
-            optuna "optuna-integration[mlflow]" evidently prometheus-client
+3. Confirma que el dataset está en `data/raw/credit_card_frauds.csv`.
+
+### 2. Verificar el modelo
+
+El frontend y la API dependen de los archivos:
+
+- `models/best_model.pkl`
+- `models/scaler.pkl`
+
+Si no existen, genera el modelo siguiendo el procedimiento de entrenamiento.
+
+## Uso
+
+El proyecto puede ejecutarse de dos maneras:
+
+- Localmente con Streamlit
+- Con Docker y Docker Compose
+
+### Uso local
+
+1. Instala las dependencias y ejecuta la app con `uv`:
+
+```bash
+uv sync
+uv run streamlit run app.py
 ```
 
-### 2. Dataset
-El dataset ya está incluido en `data/raw/credit_card_frauds.csv`. No se requiere ningún paso adicional.
+2. Abre el navegador en:
 
-### 3. Explorar datos
+```text
+http://localhost:8501
+```
+
+### Uso con Docker
+
+1. Construye el servicio de Streamlit:
+
+```bash
+docker compose build
+```
+
+2. Inicia el servicio:
+
+```bash
+docker compose up -d 
+```
+
+3. Verifica la aplicación en:
+
+```text
+http://localhost:8501
+```
+
+4. Consulta los logs en tiempo real:
+
+```bash
+docker compose logs -f fraud-streamlit
+```
+
+5. Detén el stack:
+
+```bash
+docker compose down
+```
+
+> Nota: en Docker Compose v2 se utiliza `docker compose` sin guión.
+
+## Procedimiento detallado
+
+### 1. Explorar los datos
+
+El dataset está incluido en `data/raw/credit_card_frauds.csv`. Para inspeccionarlo, usa:
+
 ```bash
 jupyter notebook notebooks/01_eda.ipynb
 ```
 
-### 4. Entrenar baseline (MLflow tracking)
+### 2. Entrenamiento básico
+
+Ejecuta el script de entrenamiento base:
+
 ```bash
 python src/models/train.py
-mlflow ui --backend-store-uri mlruns   # http://localhost:5000
 ```
 
-### 5. HPO con Optuna
-```bash
-# XGBoost — 30 trials (recomendado para producción)
-python src/models/hpo.py --model xgboost --trials 30
+Este proceso crea un modelo inicial y registra los resultados en MLflow.
 
-# Comparar ambos modelos
+### 3. Optimización con Optuna
+
+Para mejorar el modelo, ejecuta:
+
+```bash
+python src/models/hpo.py --model xgboost --trials 30
+```
+
+Opcionalmente, compara dos modelos:
+
+```bash
 python src/models/hpo.py --model both --trials 20
 ```
 
-### 6. Pipeline completo con Prefect
+### 4. Flujo completo con Prefect
+
+Si deseas automatizar todas las etapas, ejecuta:
+
 ```bash
-# Con HPO (recomendado)
 python src/models/pipeline.py --model xgboost --trials 30
-
-# Sin HPO (solo baseline)
-python src/models/pipeline.py --no-hpo
 ```
 
----
-
-## 📦 Pipeline Completo con Prefect (`pipeline.py`)
-
-El script **`src/models/pipeline.py`** es el orquestador principal que automatiza todo el flujo de ML:
-
-**Datos → Feature Engineering → Split & Scale → Baseline → [Opcional] HPO → Comparar & Registrar**
-
-### Tasks (Unidades Independientes)
-
-| Task | Función | Output |
-|---|---|---|
-| **load-data** | Carga CSV + validación | DataFrame |
-| **feature-engineering** | Construye X, y | (X, y) |
-| **split-and-scale** | Train/test split + normalización | (X_train, X_test, y_train, y_test) |
-| **baseline-training** | Entrena RF + XGB con config.yaml | (best_model, metrics, run_id, name) |
-| **hpo-optuna** | Optimización con Optuna (30 trials default) | (best_model, params, metrics, run_id) |
-| **compare-and-register** | Compara baseline vs HPO, registra ganador | (winner_name, winner_metrics) |
-
-### Flujo Completo
-
-```
-Prefect Flow: fraud-detection-full-pipeline
-│
-├─ task_load_data()           # Carga 339K transacciones
-│
-├─ task_feature_engineering()  # X: 339K×45 | y: 0.52% fraud
-│
-├─ task_split_scale()          # Train: 270K | Test: 69K
-│                              # Scaler guardado en models/scaler.pkl
-│
-├─ task_baseline()             # Entrena 2 modelos baseline
-│   ├─ Random Forest (config)  → PR-AUC: 0.8834
-│   └─ XGBoost (config)        → PR-AUC: 0.8919 ✅ (ganador)
-│
-├─ [IF run_hpo] task_hpo()     # Optuna: 30 trials (default)
-│   └─ XGBoost optimizado      → PR-AUC: 0.9087 ✅ (MEJOR)
-│
-├─ task_compare_register()      # Compara baseline vs HPO
-│   └─ Improvement: +1.89%
-│   └─ Ganador registrado en MLflow Model Registry
-│       models/best_model.pkl salvado
-│
-└─ ✅ Pipeline completo
-   Modelo: HPO_optimizado
-   PR-AUC: 0.9087 | Recall: 0.8483 | F1: 0.8543
-```
-
-### Uso
+O si solo necesitas el entrenamiento sin HPO:
 
 ```bash
-# Baseline + HPO XGBoost (30 trials — recomendado para producción)
-python src/models/pipeline.py --hpo --model xgboost --trials 30
-
-# Baseline + HPO RandomForest (50 trials)
-python src/models/pipeline.py --hpo --model random_forest --trials 50
-
-# Solo baseline (sin optimización)
 python src/models/pipeline.py --no-hpo
-
-# Baseline + HPO en ambos modelos
-python src/models/pipeline.py --hpo --model both --trials 20
 ```
 
-### Parámetros
+### 5. Despliegue de la API
 
-| Argumento | Tipo | Default | Descripción |
-|---|---|---|---|
-| `--hpo` / `--no-hpo` | flag | True | Ejecutar optimización con Optuna |
-| `--model` | str | xgboost | Qué modelo optimizar: `xgboost`, `random_forest`, `both` |
-| `--trials` | int | 30 | # de trials en Optuna |
+Inicia la API de FastAPI con:
 
-### Integraciones
-
-- **Prefect 2.x:** Orquestación, logging, retries, task dependencies
-- **MLflow:** Tracking de todos los runs + Model Registry
-- **Optuna:** Busca bayesiana de hiperparámetros (TPE sampler)
-- **Joblib:** Serialización de scaler y modelo final
-
-### Monitoreo en MLflow
-
-Accede a `http://localhost:5000`:
-- **Experimento:** `xgboost_hyperparameter_optimization`
-- **Runs:** Cada trial → `params`, `metrics`, `artifacts`
-- **Comparación:** Baseline vs HPO lado-a-lado
-- **Registry:** Mejor modelo registrado automáticamente
-
----
-
-### 8. API de predicción
 ```bash
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000
-# Docs: http://localhost:8000/docs
 ```
 
-### 9. Stack completo de monitoreo
-```bash
-docker compose up -d
-# Grafana:    http://localhost:3000  (admin/admin)
-# Prometheus: http://localhost:9090
-# MLflow:     http://localhost:5000
-# API:        http://localhost:8000/docs
+Endpoints disponibles:
 
-# En paralelo — iniciar exporter de métricas
-python src/monitoring/evidently_monitor.py
-```
+- `GET /health`
+- `POST /predict`
+- `POST /predict/batch`
+- `GET /model/info`
 
-### 10. Tests
-```bash
-pytest tests/unit/ -v   # 38 tests
-```
+### 6. Monitoreo
 
----
+El proyecto incluye integración con:
 
-## 🔬 Tecnologías
+- Prometheus para métricas
+- Grafana para dashboards
+- MLflow para seguimiento de experimentos
+- Evidently para detección de drift
 
-| Categoría | Tecnología |
-|---|---|
-| **ML** | scikit-learn, XGBoost, imbalanced-learn |
-| **HPO** | **Optuna** (TPE sampler + MedianPruner) |
-| **Experiment Tracking** | MLflow (tracking + Model Registry) |
-| **Orquestación** | Prefect 2.x |
-| **API** | FastAPI + Uvicorn |
-| **Drift Detection** | **Evidently AI** (DataDrift + Classification presets) |
-| **Métricas** | **Prometheus Client** (Gauges expuestos en /metrics) |
-| **Dashboards** | **Grafana** (dashboard JSON + auto-provisioning) |
-| **Testing** | pytest (38 tests) |
-| **CI/CD** | GitHub Actions |
-| **Contenedor** | Docker + Docker Compose |
-| **Code Quality** | black, flake8, pre-commit |
+Principales URLs:
 
----
+- `http://localhost:3000` — Grafana
+- `http://localhost:9090` — Prometheus
+- `http://localhost:5000` — MLflow
+- `http://localhost:8501` — Streamlit
+- `http://localhost:8000/docs` — API
 
-## 🔍 HPO con Optuna — Detalle
+### 7. Pruebas
 
-El módulo `src/models/hpo.py` implementa:
-
-- **Sampler:** TPE (Tree-structured Parzen Estimator) — bayesiano, converge más rápido que random search
-- **Pruner:** MedianPruner — elimina trials malos temprano (con `n_warmup_steps=5`)
-- **Métrica objetivo:** PR-AUC vía `StratifiedKFold(n_splits=3)` — robusta ante el desbalanceo severo
-- **MLflow callback:** cada trial queda como un run individual en MLflow para análisis posterior
-- **Space de búsqueda XGBoost:** `n_estimators`, `max_depth`, `learning_rate`, `subsample`, `colsample_bytree`, `min_child_weight`, `gamma`, `reg_alpha`, `reg_lambda`, `scale_pos_weight`
-- **Space de búsqueda RF:** `n_estimators`, `max_depth`, `min_samples_split`, `min_samples_leaf`, `max_features`, `class_weight`
-
-**Importancia de hiperparámetros** (obtenida con `optuna.importance`):
-
-| Param | Importancia |
-|---|---|
-| learning_rate | 0.321 |
-| max_depth | 0.181 |
-| min_child_weight | 0.153 |
-| scale_pos_weight | 0.122 |
-| gamma | 0.075 |
-
----
-
-## 📊 Monitoreo con Evidently + Grafana
-
-### Stack
-
-```
-Modelo → prometheus_client (puerto 8001)
-              ↓ scrape cada 30s
-         Prometheus (puerto 9090)
-              ↓ datasource
-         Grafana (puerto 3000)
-              + dashboard auto-provisionado
-```
-
-### Qué monitorea Evidently
-
-- **DataDriftPreset:** KS test en todas las features numéricas + score de fraude
-- **ClassificationPreset:** precision, recall, F1, PR-AUC en ventana de producción
-- Reportes HTML guardados en `monitoring_reports/` con timestamp
-
-
-### Métricas en Grafana
-
-| Gauge Prometheus | Descripción |
-|---|---|
-| `fraud_model_drift_share` | Fracción de features con drift (p<0.05) |
-| `fraud_model_score_drift_pvalue` | p-value KS del score de fraude |
-| `fraud_model_recall` | Recall en ventana actual |
-| `fraud_model_pr_auc` | PR-AUC en ventana actual |
-| `fraud_model_usd_detected` | USD en fraude detectado |
-| `fraud_model_usd_missed` | USD en fraude no detectado |
-| `fraud_model_false_positives` | Falsos positivos en ventana |
----
-> Nota: La carpeta `monitoring_reports/` contiene reportes pre-generados de ejecuciones anteriores como evidencia de funcionamiento. Al correr `evidently_monitor.py` se generarán nuevos reportes con timestamp.
-
-## 📈 Resultados
-
-| Etapa | Modelo | PR-AUC | Recall | F1 | Fraudes/Total |
-|---|---|---|---|---|---|
-| Baseline | XGBoost | 0.8919 | 0.9073 | 0.6377 | 323/356 |
-| **HPO (8 trials)** | **XGBoost** | **0.9087** | **0.8483** | **0.8543** | 302/356 |
-
-**Impacto de negocio:** $172,476 detectados vs $1,747 perdidos → 99% de detección en USD.
-
----
-
-## 🌐 API Endpoints
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/health` | Estado del modelo |
-| POST | `/predict` | Puntuar 1 transacción |
-| POST | `/predict/batch` | Puntuar múltiples |
-| GET | `/model/info` | Info del modelo activo |
-
----
-
-## 📅 Timeline
-
-| Fase | Actividad | Días |
-|---|---|---|
-| 1 | EDA + feature engineering | 3 |
-| 2 | Baseline + MLflow tracking | 2 |
-| 3 | HPO con Optuna | 2 |
-| 4 | Pipeline Prefect | 2 |
-| 5 | FastAPI deployment | 2 |
-| 6 | Evidently + Prometheus + Grafana | 3 |
-| 7 | Tests + CI/CD + Docker | 2 |
-| 8 | Documentación | 1 |
-
----
-
-## 🤝 Evaluación por Pares
+Instala las dependencias de desarrollo con `uv` si están disponibles y ejecuta:
 
 ```bash
-# 1. Instalar y poner dataset
-pip install -r requirements.txt   # o poetry install
-cp credit_card_frauds.csv data/raw/
-
-# 2. Tests
-pytest tests/unit/ -v
-
-# 3. HPO + entrenamiento
-python src/models/hpo.py --model xgboost --trials 10
-
-# 4. API
-uvicorn src.api.main:app --port 8000
-curl http://localhost:8000/health
-
-# 5. Stack de monitoreo
-docker compose up -d
-# Grafana: http://localhost:3000 → dashboard "Fraud Detection Model"
+uv sync --dev
+uv run pytest tests/unit/ -v
 ```
+
+## Arquitectura del proyecto
+
+La estructura del repositorio es:
+
+```
+ML_UdeM_Fraud_Detection/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # Configuración de CI/CD
+├── .streamlit/
+│   └── config.toml                   # Configuración de Streamlit
+├── configs/
+│   └── config.yaml                   # Parámetros del modelo y features
+├── data/
+│   ├── raw/
+│   │   └── credit_card_frauds.csv    # Dataset original (339K registros)
+│   └── processed/                    # Datos procesados (si aplica)
+├── logs/
+│   └── monitoring_report.json        # Reportes de monitoreo
+├── mlruns/                           # Tracking de experimentos MLflow
+│   ├── 0/
+│   ├── 165115422552987618/          # Experimento principal
+│   ├── 550687090619340603/          # Otros experimentos
+│   └── models/                       # Modelos registrados
+├── models/
+│   ├── best_model.pkl               # Modelo entrenado
+│   └── scaler.pkl                   # StandardScaler serializado
+├── monitoring_reports/
+│   ├── classification_*.html         # Reportes de clasificación
+│   ├── drift_*.html                 # Reportes de drift
+│   └── metrics_*.json               # Métricas almacenadas
+├── notebooks/
+│   └── 01_eda.ipynb                 # Análisis exploratorio de datos
+├── src/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # FastAPI endpoints
+│   │   └── schemas.py               # Modelos Pydantic
+│   ├── data/
+│   │   ├── __init__.py
+│   │   └── preprocessing.py         # Feature engineering y preprocesamiento
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── train.py                 # Entrenamiento baseline
+│   │   ├── hpo.py                   # Optimización con Optuna
+│   │   └── pipeline.py              # Orquestación con Prefect
+│   └── monitoring/
+│       ├── __init__.py
+│       ├── evidently_monitor.py     # Monitoreo de drift
+│       ├── prometheus.yml           # Configuración Prometheus
+│       └── grafana/
+│           ├── provisioning/        # Auto-provisioning de Grafana
+│           └── dashboards/          # Dashboards JSON
+├── tests/
+│   └── unit/
+│       ├── test_*.py                # Tests unitarios (38+)
+│       └── conftest.py              # Configuración pytest
+├── app.py                            # Aplicación Streamlit
+├── predict_example.py                # Ejemplo de predicción
+├── docker-compose.yml                # Orquestación de servicios
+├── Dockerfile                        # Imagen multi-servicio
+├── pyproject.toml                    # Configuración de proyecto y dependencias
+├── uv.lock                           # Lock file de dependencias
+├── .pre-commit-config.yaml           # Pre-commit hooks
+├── .gitignore                        # Archivos ignorados
+├── LICENSE                           # Licencia del proyecto
+├── README.md                         # Este archivo
+├── QUICK_START.md                    # Guía de inicio rápido
+├── FRONTEND_README.md                # Documentación del frontend
+└── .dockerignore                     # Archivos ignorados en Docker
+```
+
+## Solución de problemas comunes
+
+- Si `docker compose build` falla porque falta un archivo, revisa el `Dockerfile` y confirma que el archivo exista en la raíz.
+- Si Streamlit no carga, revisa que el puerto `8501` esté libre.
+- Si los modelos no aparecen, genera `best_model.pkl` y `scaler.pkl` con los scripts de entrenamiento.
+- Si PowerShell no permite ejecutar scripts, ajusta la política con:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+## Guía Rápida
+
+1. Clona el repositorio: `git clone https://github.com/usuario/ML_UdeM_Fraud_Detection.git && cd ML_UdeM_Fraud_Detection`.
+2. Instala dependencias: `uv sync`.
+3. Verifica que `data/raw/credit_card_frauds.csv` exista.
+4. Entrena el modelo básico: `python src/models/train.py`.
+5. Optimiza con Optuna: `python src/models/hpo.py --model xgboost --trials 30`.
+6. Ejecuta la app local: `streamlit run app.py`.
+7. O inicia Docker: `docker compose up -d fraud-streamlit`.
+8. Accede a `http://localhost:8501`.
+
+## Créditos
+
+Proyecto desarrollado como trabajo final de la especialización en Data Science e IA de la Universidad de Medellín.
+
+Última actualización: Abril 2026

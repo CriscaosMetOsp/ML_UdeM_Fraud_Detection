@@ -22,11 +22,7 @@ Interfaz web interactiva para realizar predicciones de fraude en transacciones d
 #### Instalación
 
 ```bash
-# Instalar dependencias
-pip install -e .
-
-# O usar uv si está disponible
-uv pip install -e .
+uv sync
 ```
 
 #### Ejecutar la app
@@ -265,11 +261,8 @@ Edita `app.py` directamente. Streamlit recargará automáticamente.
 
 ### Testing
 ```bash
-# Instalar dependencias de desarrollo
-pip install -e ".[dev]"
-
-# Ejecutar tests
-pytest tests/
+uv sync --dev
+uv run pytest tests/
 ```
 
 ## 📞 Soporte

@@ -34,7 +34,6 @@ COPY src/ ./src/
 COPY configs/ ./configs/
 COPY data/ ./data/
 COPY models/ ./models/
-COPY run_monitoring.py ./
 COPY app.py ./
 COPY predict_example.py ./
 
