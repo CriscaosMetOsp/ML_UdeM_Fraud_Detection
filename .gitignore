@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+.env
+
+# uv
+.uv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# MLflow (contiene runs pesados — el profesor puede generarlos)
+# Comenta estas líneas si quieres incluir mlruns en el repo
+# mlruns/
+
+# Modelos entrenados (pesados, mejor no versionar)
+# Comenta si quieres incluirlos
+# models/*.pkl
+
+# Reportes de monitoreo generados automáticamente
+monitoring_reports/
+
+# Logs
+logs/
+*.log
+
+# Datos crudos (pesados)
+# Comenta si decides incluir el dataset en el repo
+# data/raw/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp

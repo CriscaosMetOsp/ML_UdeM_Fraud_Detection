@@ -47,18 +47,21 @@ fraud-mlops/
 ## ⚡ Quickstart
 
 ### 1. Instalar dependencias
+
+**Con uv (recomendado — usa el lockfile incluido):**
 ```bash
-git clone https://github.com/<usuario>/fraud-mlops.git
-cd fraud-mlops
+pip install uv
+uv sync
+```
+
+**Con pip (alternativa):**
 pip install pandas numpy scikit-learn xgboost mlflow prefect fastapi uvicorn \
             pydantic imbalanced-learn joblib pyyaml scipy \
-            optuna optuna-integration[mlflow] evidently prometheus-client
+            optuna "optuna-integration[mlflow]" evidently prometheus-client
 ```
 
 ### 2. Dataset
-```bash
-cp credit_card_frauds.csv data/raw/
-```
+El dataset ya está incluido en `data/raw/credit_card_frauds.csv`. No se requiere ningún paso adicional.
 
 ### 3. Explorar datos
 ```bash
@@ -264,6 +267,7 @@ Modelo → prometheus_client (puerto 8001)
 - **ClassificationPreset:** precision, recall, F1, PR-AUC en ventana de producción
 - Reportes HTML guardados en `monitoring_reports/` con timestamp
 
+
 ### Métricas en Grafana
 
 | Gauge Prometheus | Descripción |
@@ -275,8 +279,8 @@ Modelo → prometheus_client (puerto 8001)
 | `fraud_model_usd_detected` | USD en fraude detectado |
 | `fraud_model_usd_missed` | USD en fraude no detectado |
 | `fraud_model_false_positives` | Falsos positivos en ventana |
-
 ---
+> Nota: La carpeta `monitoring_reports/` contiene reportes pre-generados de ejecuciones anteriores como evidencia de funcionamiento. Al correr `evidently_monitor.py` se generarán nuevos reportes con timestamp.
 
 ## 📈 Resultados
 
