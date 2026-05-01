@@ -1,5 +1,10 @@
 ﻿# Fraud Detection MLOps
 
+## Integrantes del equipo:
+- Ángelica Órtiz Álvarez (aortiz016@soyudemedellin.edu.co)
+- Jhon Jader Díaz Gómez (jdiaz510@soyudemedellin.edu.co)
+- Cristian Camilo Ospina Metaute (cospina149@soyudemedellin.edu.co)
+  
 ## Introducción
 
 Este proyecto implementa una solución completa de detección de fraude en transacciones con tarjeta de crédito. Combina el entrenamiento de modelos, la optimización de hiperparámetros, la API de predicción y un frontend en Streamlit, con monitoreo en Prometheus, Grafana y MLflow.
